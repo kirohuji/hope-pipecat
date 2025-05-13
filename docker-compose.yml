@@ -1,0 +1,12 @@
+version: '3.8'
+services:
+  pipecat-app:
+    build: .
+    container_name: pipecat-app
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - .:/app
+    ports:
+      - "8000:8000"
+    command: ["python", "app.py"] 
