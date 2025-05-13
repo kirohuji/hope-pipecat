@@ -20,9 +20,9 @@ Pipecat 是一个用于构建实时语音和多模态对话代理的开源 Pytho
 
 ```bash
 python3 -m venv venv
-source venv/bin/activate
+source venv/bin/activate  # On Windows: venv\Scripts\activate
 pip install --upgrade pip
-pip install pipecat-ai
+pip install -r requirements.txt
 ```
 
 ### 2. 运行示例
@@ -78,6 +78,36 @@ docker-compose up --build
 - [Pipecat 官方文档](https://docs.pipecat.ai/)
 - [Pipecat GitHub](https://github.com/pipecat-ai/pipecat)
 - [PyPI: pipecat-ai](https://pypi.org/project/pipecat-ai/)
+
+## 文件结构与命名说明
+
+在 Pipecat 及类似 AI/Agent 框架中，常见的文件命名如 `server.py`、`runner.py`、`bot.py`，是为了清晰表达每个模块的职责和分层，便于开发、维护和扩展。
+
+### 1. server.py
+- **作用**：通常作为服务端入口，负责启动 HTTP/WebSocket/WebRTC 等服务，监听外部请求，管理会话生命周期。
+- **典型内容**：API 路由、会话管理、与前端/客户端通信的逻辑。
+- **好处**：将服务启动和网络通信逻辑与业务逻辑分离，便于部署和横向扩展。
+
+### 2. runner.py
+- **作用**：负责"运行"或调度核心流程，比如会话管道、任务队列、异步事件循环等。
+- **典型内容**：流程控制、任务调度、异步执行、资源管理。
+- **好处**：将流程调度与业务实现解耦，便于测试和复用。
+
+### 3. bot.py
+- **作用**：定义"智能体"或"机器人"的具体行为和逻辑。
+- **典型内容**：对话策略、消息处理、与 AI 服务的集成、事件响应。
+- **好处**：聚焦于业务和交互逻辑，便于扩展不同类型的 bot。
+
+### 这样设计的优点
+- **单一职责**：每个文件只做一件事，易于理解和维护。
+- **可扩展性**：可以很方便地增加新的 bot、runner 或 server 实现。
+- **解耦**：网络、调度、业务逻辑分离，便于团队协作和单元测试。
+- **社区惯例**：很多 Python/AI 项目都采用类似命名，降低学习和迁移成本。
+
+> 参考：
+> - [Pipecat 官方文档](https://docs.pipecat.ai/)
+> - [Pipecat GitHub 源码结构](https://github.com/pipecat-ai/pipecat)
+> - 其他主流 AI/Agent 框架（如 langchain、fastapi、transformers）也有类似分层设计
 
 ---
 

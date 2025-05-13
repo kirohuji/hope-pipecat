@@ -1,1 +1,4 @@
-pipecat-ai>=0.0.67 
+pipecat-ai>=0.0.67
+python-dotenv
+fastapi[all]
+uvicorn
