@@ -1,0 +1,2 @@
+aiohttp
+pipecat-ai[webrtc,daily,openai,silero,websocket,google,cartesia,deepgram]==0.0.69

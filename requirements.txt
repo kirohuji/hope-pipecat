@@ -1,4 +1,4 @@
-pipecat-ai>=0.0.67
-python-dotenv
-fastapi[all]
-uvicorn
+typer==0.12.5
+-r src/webapp/requirements.txt
+-r src/bots/requirements.txt
+pipecat-ai-small-webrtc-prebuilt

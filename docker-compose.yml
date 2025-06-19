@@ -8,5 +8,5 @@ services:
     volumes:
       - .:/app
     ports:
-      - "8000:8000"
-    command: ["python", "app.py"] 
+      - "7860:7860"
+    command: ["python", "src/server.py", "run"] 

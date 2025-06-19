@@ -1,24 +1,16 @@
-# 基于官方 Python 镜像
-FROM python:3.11-slim
+FROM python:3.12
 
-# 设置工作目录
 WORKDIR /app
 
 # 复制依赖文件
 COPY requirements.txt ./
+RUN pip install -r requirements.txt
 
-# 安装依赖
-RUN python -m venv /opt/venv \
-    && . /opt/venv/bin/activate \
-    && pip install --upgrade pip \
-    && pip install -r requirements.txt
+# 复制源代码
+COPY src/ ./src/
 
-# 复制项目代码
-COPY . .
+# 暴露正确的端口（根据 server.py 中的默认端口）
+EXPOSE 7860
 
-# 激活虚拟环境并设置 PATH
-ENV VIRTUAL_ENV=/opt/venv
-ENV PATH="$VIRTUAL_ENV/bin:$PATH"
-
-# 默认启动命令
-CMD ["python", "app.py"] 
+# 使用正确的命令启动服务器
+CMD ["python", "src/server.py", "run"]
