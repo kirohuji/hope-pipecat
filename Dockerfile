@@ -31,7 +31,7 @@ COPY src/webapp/requirements.txt ./src/webapp/
 COPY src/bots/requirements.txt ./src/bots/
 
 # 安装依赖
-RUN pip3 install -r requirements.txt
+RUN pip3 install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
 
 # 复制源代码
 COPY src/ ./src/
