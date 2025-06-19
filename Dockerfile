@@ -2,9 +2,13 @@ FROM python:3.12
 
 WORKDIR /app
 
-# 复制依赖文件
+# 复制所有requirements文件
 COPY requirements.txt ./
-RUN pip install -r requirements.txt
+COPY src/webapp/requirements.txt ./src/webapp/
+COPY src/bots/requirements.txt ./src/bots/
+
+# 安装依赖
+RUN pip3 install -r requirements.txt
 
 # 复制源代码
 COPY src/ ./src/
