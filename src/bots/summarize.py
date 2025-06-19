@@ -9,8 +9,8 @@ from pipecat.pipeline.pipeline import Pipeline
 from pipecat.pipeline.runner import PipelineRunner
 from pipecat.pipeline.task import PipelineTask
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContextFrame
-from pipecat.services.ai_services import OpenAILLMContext
-from pipecat.services.google import GoogleLLMContext, GoogleLLMService
+from pipecat.services.llm_service import OpenAILLMContext
+from pipecat.services.google.llm import GoogleLLMContext, GoogleLLMService
 
 
 async def generate_summary_with_llm(messages: List[Dict[str, str]]) -> Optional[str]:

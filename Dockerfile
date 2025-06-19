@@ -2,6 +2,29 @@ FROM python:3.12
 
 WORKDIR /app
 
+# 安装系统依赖（OpenCV需要）
+RUN apt-get update && apt-get install -y \
+    libgl1-mesa-glx \
+    libglib2.0-0 \
+    libsm6 \
+    libxext6 \
+    libxrender-dev \
+    libgomp1 \
+    libgtk-3-0 \
+    libavcodec-dev \
+    libavformat-dev \
+    libswscale-dev \
+    libv4l-dev \
+    libxvidcore-dev \
+    libx264-dev \
+    libjpeg-dev \
+    libpng-dev \
+    libtiff-dev \
+    libatlas-base-dev \
+    gfortran \
+    ffmpeg \
+    && rm -rf /var/lib/apt/lists/*
+
 # 复制所有requirements文件
 COPY requirements.txt ./
 COPY src/webapp/requirements.txt ./src/webapp/

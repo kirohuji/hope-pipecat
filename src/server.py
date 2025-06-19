@@ -273,18 +273,19 @@ def run(
 
     try:
         final_port = port or int(os.getenv("WEBAPP_PORT", "7860"))
+        # 在Docker环境中默认绑定到0.0.0.0
+        final_host = host or os.getenv("WEBAPP_HOST", "0.0.0.0")
         app_path = "src.webapp.main:app"
 
         # Build command arguments
         command = [
             "uvicorn",
             app_path,
+            "--host",
+            final_host,
             "--port",
             str(final_port),
         ]
-
-        if host:
-            command.extend(["--host", host])
 
         if reload:
             command.append("--reload")
@@ -292,8 +293,7 @@ def run(
         # Show server info
         console.print("\nStarting development server...", style="blue bold")
         console.print(f"Application: {app_path}", style="blue")
-        if host:
-            console.print(f"Host: {host}", style="blue")
+        console.print(f"Host: {final_host}", style="blue")
         console.print(f"Port: {final_port}", style="blue")
         console.print(f"Reload: {'enabled' if reload else 'disabled'}", style="blue")
         console.print("\nPress CTRL+C to stop the server\n", style="yellow")

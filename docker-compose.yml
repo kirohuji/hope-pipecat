@@ -9,4 +9,4 @@ services:
       - .:/app
     ports:
       - "7860:7860"
-    command: ["python", "src/server.py", "run"] 
+    command: ["python", "src/server.py", "run", "--host", "0.0.0.0", "--port", "7860"] 
