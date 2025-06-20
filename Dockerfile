@@ -36,6 +36,9 @@ RUN pip3 install -r requirements.txt -i https://mirrors.aliyun.com/pypi/simple/
 # 复制源代码
 COPY src/ ./src/
 
+# 复制 ssl 证书目录
+COPY src/ssl/ ./src/ssl/
+
 # 暴露正确的端口（根据 server.py 中的默认端口）
 EXPOSE 7860
 

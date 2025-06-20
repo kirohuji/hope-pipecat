@@ -279,13 +279,19 @@ def run(
 
         # Build command arguments
         command = [
-            "uvicorn",
-            app_path,
-            "--host",
-            final_host,
-            "--port",
-            str(final_port),
+            "uvicorn",app_path,
+            "--host", final_host,
+            "--port",str(final_port),
         ]
+
+        # 检查 SSL 证书和密钥
+        ssl_cert = os.path.join("src", "ssl", "hope.lourd.top_bundle.pem")
+        ssl_key = os.path.join("src", "ssl", "hope.lourd.top.key")
+        if os.path.exists(ssl_cert) and os.path.exists(ssl_key):
+            command += [
+                "--ssl-certfile", ssl_cert,
+                "--ssl-keyfile", ssl_key
+            ]
 
         if reload:
             command.append("--reload")
