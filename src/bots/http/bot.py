@@ -29,7 +29,10 @@ from pipecat.processors.frameworks.rtvi import (
     RTVIProcessor,
     RTVIObserver,
 )
+from deepgram import LiveOptions
 from pipecat.services.deepseek.llm import DeepSeekLLMService
+from pipecat.services.deepgram.stt import DeepgramSTTService
+from pipecat.services.cartesia.tts import CartesiaTTSService
 # from pipecat.services.ai_services import OpenAILLMContext
 # from pipecat.services.google import GoogleLLMContext, GoogleLLMService
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
@@ -111,6 +114,19 @@ async def http_bot_pipeline(
             model="deepseek-chat",
     )
 
+    stt = DeepgramSTTService(
+        api_key=os.getenv("DEEPGRAM_API_KEY"),
+        live_options=LiveOptions(
+            vad_events=True,
+        ),
+    )
+
+    tts = CartesiaTTSService(
+        api_key=os.getenv("CARTESIA_API_KEY"),
+            voice_id="71a7ad14-091c-4e8e-a314-022ece01c121",  # British Reading Lady
+            # language=Language.ZH,
+    )
+
     tools = NOT_GIVEN
     if isinstance(llm, DeepSeekLLMService):
         converted_messages = []
@@ -144,10 +160,12 @@ async def http_bot_pipeline(
 
     processors = [
         rtvi,
+        # stt,
         user_aggregator,
         storage.create_processor(),
         llm,
         async_generator,
+        tts,
         assistant_aggregator,
         storage.create_processor(exit_on_endframe=True),
     ]

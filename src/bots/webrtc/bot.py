@@ -7,7 +7,7 @@ from typing import Awaitable, Callable
 import aiohttp
 from src.bots.types import BotCallbacks, BotConfig, BotParams
 from src.bots.webrtc.bot_error_pipeline import bot_error_pipeline_task
-from src.bots.webrtc.bot_pipeline import bot_pipeline, bot_pipeline_webrtc
+from src.bots.webrtc.bot_pipeline import bot_pipeline, bot_pipeline_websocket,bot_pipeline_webrtc
 from src.bots.webrtc.bot_pipeline_runner import BotPipelineRunner
 from pipecat.transports.network.webrtc_connection import SmallWebRTCConnection
 from src.common.config import SERVICE_API_KEYS
@@ -153,7 +153,7 @@ async def bot_launch_websocket(
     # process.start()
     bot_runner = BotPipelineRunner()
     try:
-        task_creator = await _pipeline_task(params, config, None, None, websocket)
+        task_creator = await _pipeline_task_websocket(params, config, websocket)
         await bot_runner.start(task_creator)
     except Exception as e:
         logger.error(f"Error running bot: {e}")
@@ -205,3 +205,26 @@ async def bot_launch_webrtc(
     except Exception as e:
         logger.error(f"Error running bot: {e}")
         logger.info("Bot has finished. Bye!")
+
+
+async def _pipeline_task_websocket(
+    params: BotParams,
+    config: BotConfig,
+    websocket: WebSocket,
+) -> Callable[[BotCallbacks], Awaitable[PipelineTask]]:
+    async def create_task(callbacks: BotCallbacks) -> PipelineTask:
+        pipeline, rtvi = await bot_pipeline_websocket(params, config, callbacks, websocket)
+
+        task = PipelineTask(
+            pipeline,
+            params=PipelineParams(
+                allow_interruptions=False,
+                enable_metrics=True,
+                send_initial_empty_metrics=False,
+            ),
+            observers=[RTVIObserver(rtvi)]
+        )
+
+        return task
+
+    return create_task

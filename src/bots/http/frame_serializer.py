@@ -20,6 +20,7 @@ class BotFrameSerializer(FrameSerializer):
         return FrameSerializerType.TEXT
 
     async def serialize(self, frame: Frame) -> str | bytes | None:
+        print(f"Serializing frame: {frame}")
         if isinstance(frame, TransportMessageUrgentFrame):
             # logger.debug(f"Serializing urgent frame: {str(frame.message)}...")
             return encode_response(frame.message)

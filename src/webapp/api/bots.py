@@ -53,14 +53,6 @@ async def connect(params: BotParams):
 
     logger.debug(f"Starting voice bot for conversation {params.conversation_id}")
 
-    # Check that the conversation exists before proceeding
-    conversation = await Conversation.get(params.conversation_id)
-    if conversation is None:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"Conversation {params.conversation_id} not found",
-        )
-
     # Check that we have a valid daily API key
     transport_api_key = SERVICE_API_KEYS["daily"]
 

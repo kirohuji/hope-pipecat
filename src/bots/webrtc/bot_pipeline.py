@@ -36,6 +36,7 @@ from pipecat.processors.frame_processor import FrameDirection
 # )
 from pipecat.processors.aggregators.openai_llm_context import OpenAILLMContext
 from pipecat.serializers.protobuf import ProtobufFrameSerializer
+from src.bots.webrtc.frame_serializer import BotFrameSerializer
 from pipecat.services.gemini_multimodal_live.gemini import (
     GeminiMultimodalLiveLLMService,
 )
@@ -76,30 +77,30 @@ async def bot_pipeline(
     #     ),
     # )
 
-    # transport = FastAPIWebsocketTransport(
-    #     websocket=websocket,
-    #     params=FastAPIWebsocketParams(
-    #         audio_in_sample_rate=16000,
-    #         audio_out_sample_rate=24000,
-    #         audio_in_enabled=True,
-    #         audio_out_enabled=True,
-    #         add_wav_header=False,
-    #         vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=0.5)),
-    #         serializer=ProtobufFrameSerializer(),
-    #     ),
+    transport = FastAPIWebsocketTransport(
+        websocket=websocket,
+        params=FastAPIWebsocketParams(
+            audio_in_sample_rate=16000,
+            audio_out_sample_rate=24000,
+            audio_in_enabled=True,
+            audio_out_enabled=True,
+            add_wav_header=False,
+            vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=0.5)),
+            serializer=ProtobufFrameSerializer(),
+        ),
+    )
+    # transport_params = TransportParams(
+    #     audio_in_enabled=True,
+    #     audio_out_enabled=True,
+    #     audio_out_10ms_chunks=2,
+    #     video_in_enabled=True,
+    #     video_out_enabled=True,
+    #     video_out_is_live=True,
+    #     vad_analyzer=SileroVADAnalyzer(),
     # )
-    transport_params = TransportParams(
-        audio_in_enabled=True,
-        audio_out_enabled=True,
-        audio_out_10ms_chunks=2,
-        video_in_enabled=True,
-        video_out_enabled=True,
-        video_out_is_live=True,
-        vad_analyzer=SileroVADAnalyzer(),
-    )
-    transport = SmallWebRTCTransport(
-        webrtc_connection=pipecat_connection, params=transport_params
-    )
+    # transport = SmallWebRTCTransport(
+    #     webrtc_connection=pipecat_connection, params=transport_params
+    # )
 
     conversation = await Conversation.get(params.conversation_id)
     if not conversation:
@@ -117,23 +118,23 @@ async def bot_pipeline(
     #         vad_events=True,
     #     ),
     # )
-    # llm_rt = DeepSeekLLMService(
-    #     api_key=os.getenv("DEEPSEEK_API_KEY"),
-    #         model="deepseek-chat",
-    # )
+    llm_rt = DeepSeekLLMService(
+        api_key=os.getenv("DEEPSEEK_API_KEY"),
+            model="deepseek-chat",
+    )
     # tts = CartesiaTTSService(
     #     api_key=os.getenv("CARTESIA_API_KEY"),
     #         voice_id="71a7ad14-091c-4e8e-a314-022ece01c121",  # British Reading Lady
     #         # language=Language.ZH,
     # )
-    llm_rt = GeminiMultimodalLiveLLMService(
-        api_key=str(SERVICE_API_KEYS["gemini"]),
-        voice_id="Aoede",  # Puck, Charon, Kore, Fenrir, Aoede
-        # system_instruction="Talk like a pirate."
-        transcribe_user_audio=True,
-        transcribe_model_audio=True,
-        inference_on_context_initialization=False,
-    )
+    # llm_rt = GeminiMultimodalLiveLLMService(
+    #     api_key=str(SERVICE_API_KEYS["gemini"]),
+    #     voice_id="Aoede",  # Puck, Charon, Kore, Fenrir, Aoede
+    #     # system_instruction="Talk like a pirate."
+    #     transcribe_user_audio=True,
+    #     transcribe_model_audio=True,
+    #     inference_on_context_initialization=False,
+    # )
 
     tools = NOT_GIVEN  # todo: implement tools in and set here
     context_rt = OpenAILLMContext(messages, tools)
@@ -146,7 +147,7 @@ async def bot_pipeline(
     context_aggregator_rt = llm_rt.create_context_aggregator(context_rt)
     user_aggregator = context_aggregator_rt.user()
     assistant_aggregator = context_aggregator_rt.assistant()
-    await llm_rt.set_context(context_rt)
+    # await llm_rt.set_context(context_rt)
     # storage = PersistentContext(context=context_rt)
 
     rtvi = await create_rtvi_processor(config, user_aggregator)
@@ -157,7 +158,7 @@ async def bot_pipeline(
         user_aggregator,
         rtvi,
         llm_rt,
-        # tts,
+        tts,
         transport.output(),
         assistant_aggregator,
         # storage.create_processor(exit_on_endframe=True),
@@ -331,3 +332,113 @@ async def bot_pipeline_webrtc(
         await callbacks.on_call_state_updated(state)
 
     return (pipeline , rtvi)
+
+
+async def bot_pipeline_websocket(
+    params: BotParams,
+    config: BotConfig,
+    callbacks: BotCallbacks,
+    websocket: WebSocket,
+) -> Pipeline:
+    transport = FastAPIWebsocketTransport(
+        websocket=websocket,
+        params=FastAPIWebsocketParams(
+            audio_in_sample_rate=16000,
+            audio_out_sample_rate=24000,
+            audio_in_enabled=True,
+            audio_out_enabled=True,
+            add_wav_header=False,
+            vad_analyzer=SileroVADAnalyzer(params=VADParams(stop_secs=0.5)),
+            # serializer=BotFrameSerializer(),
+        ),
+    )
+
+
+    stt = DeepgramSTTService(
+        api_key=os.getenv("DEEPGRAM_API_KEY"),
+        live_options=LiveOptions(
+            vad_events=True,
+        ),
+    )
+    llm_rt = DeepSeekLLMService(
+        api_key=os.getenv("DEEPSEEK_API_KEY"),
+            model="deepseek-chat",
+    )
+    tts = CartesiaTTSService(
+        api_key=os.getenv("CARTESIA_API_KEY"),
+            voice_id="71a7ad14-091c-4e8e-a314-022ece01c121",  # British Reading Lady
+            # language=Language.ZH,
+    )
+
+    context_rt = OpenAILLMContext(
+        [
+            {
+                "role": "user",
+                "content": "Start by greeting the user warmly and introducing yourself.",
+            }
+        ],
+    )
+
+    context_aggregator_rt = llm_rt.create_context_aggregator(context_rt)
+    user_aggregator = context_aggregator_rt.user()
+    assistant_aggregator = context_aggregator_rt.assistant()
+
+    rtvi = await create_rtvi_processor(config, user_aggregator)
+
+    processors = [
+        transport.input(),
+        rtvi,
+        stt,
+        user_aggregator,
+        llm_rt,
+        tts,
+        transport.output(),
+        assistant_aggregator,
+        # storage.create_processor(exit_on_endframe=True),
+    ]
+
+    pipeline = Pipeline(processors)
+
+    # @rtvi.event_handler("on_bot_started")
+    # async def on_bot_started(rtvi):
+    #     for action in params.actions:
+    #         logger.debug(f"Processing action: {action}")
+    #         await rtvi.handle_message(action)
+    #     action = RTVIActionRun(service="system", action="end")
+    #     message = RTVIMessage(type="action", id="END", data=action.model_dump())
+    #     await rtvi.handle_message(message)
+
+    @rtvi.event_handler("on_client_ready")
+    async def on_client_ready(rtvi):
+        logger.info("Pipecat client ready.")
+        await rtvi.set_bot_ready()
+        # await rtvi.queue_frames([context_aggregator_rt.user().get_context_frame()])
+        # for message in params.actions:
+        #     await rtvi.handle_message(message)
+
+    @transport.event_handler("on_first_participant_joined")
+    async def on_first_participant_joined(transport, participant):
+        # Enable both camera and screenshare. From the client side
+        # send just one.
+        await transport.capture_participant_video(
+            participant["id"], framerate=1, video_source="camera"
+        )
+        await transport.capture_participant_video(
+            participant["id"], framerate=1, video_source="screenVideo"
+        )
+        await callbacks.on_first_participant_joined(participant)
+
+    @transport.event_handler("on_participant_joined")
+    async def on_participant_joined(transport, participant):
+        await callbacks.on_participant_joined(participant)
+
+    @transport.event_handler("on_participant_left")
+    async def on_participant_left(transport, participant, reason):
+        await callbacks.on_participant_left(participant, reason)
+
+    @transport.event_handler("on_call_state_updated")
+    async def on_call_state_updated(transport, state):
+        await callbacks.on_call_state_updated(state)
+
+    return (pipeline , rtvi)
+
